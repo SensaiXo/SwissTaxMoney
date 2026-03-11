@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { COFOG_CATEGORIES } from '../lib/cofog';
 import type { CofogRow } from '../lib/data';
 import { SECTOR_LABELS } from '../lib/data';
@@ -129,6 +130,26 @@ export function Dashboard({ data, years }: DashboardProps) {
         </div>
       </div>
 
+      {/* Analysis CTA */}
+      <Link
+        href="/analysis"
+        className="block bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-gray-300 transition-all mb-8 group"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900 group-hover:text-[#8B2D1E] transition-colors">
+              Spending Analysis — Swiss vs. Foreign vs. Migration
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              See how much goes to Swiss residents, how much abroad, and how migration spending compares to other budget items.
+            </p>
+          </div>
+          <span className="text-2xl text-gray-300 group-hover:text-[#8B2D1E] transition-colors ml-4">
+            →
+          </span>
+        </div>
+      </Link>
+
       {/* Category Cards Grid */}
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Spending Categories — click to explore subcategories
@@ -172,11 +193,9 @@ export function Dashboard({ data, years }: DashboardProps) {
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
         <h3 className="text-sm font-medium text-gray-500 mb-4">
-          Spending Over Time — All Categories
+          Spending Over Time — click categories to show/hide
         </h3>
-        <div className="h-[400px]">
-          <LineChart years={allYears} datasets={lineDatasets} />
-        </div>
+        <LineChart years={allYears} datasets={lineDatasets} filterable />
       </div>
 
       {/* Source */}

@@ -226,11 +226,9 @@ export function CategoryDetail({ category, data, years }: CategoryDetailProps) {
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
         <h3 className="text-sm font-medium text-gray-500 mb-4">
-          Subcategories Over Time
+          Subcategories Over Time — click to show/hide
         </h3>
-        <div className="h-[400px]">
-          <LineChart years={allYears} datasets={lineDatasets} />
-        </div>
+        <LineChart years={allYears} datasets={lineDatasets} filterable />
       </div>
 
       {/* Data Table */}
