@@ -1,19 +1,24 @@
 import Link from 'next/link';
 import type { CofogCategory } from '../lib/cofog';
+import { formatCHF } from '../lib/data';
+import { GrowthBadge } from './GrowthBadge';
 
 interface CategoryCardProps {
   category: CofogCategory;
   value: number;
   unit: string;
   maxValue: number;
+  change?: number | null;
 }
 
-export function CategoryCard({ category, value, unit, maxValue }: CategoryCardProps) {
+export function CategoryCard({ category, value, unit, maxValue, change }: CategoryCardProps) {
   const pct = maxValue > 0 ? (value / maxValue) * 100 : 0;
   const display =
-    unit === 'MCHF'
-      ? new Intl.NumberFormat('de-CH', { maximumFractionDigits: 0 }).format(value) + ' M CHF'
-      : value.toFixed(1) + '%';
+    unit === 'PER_CAPITA'
+      ? 'CHF ' + formatCHF(value)
+      : unit === 'MCHF'
+        ? formatCHF(value) + ' M CHF'
+        : value.toFixed(1) + '%';
 
   return (
     <Link
@@ -33,6 +38,7 @@ export function CategoryCard({ category, value, unit, maxValue }: CategoryCardPr
       </div>
       <p className="text-2xl font-bold mb-3" style={{ color: category.color }}>
         {display}
+        <GrowthBadge change={change ?? null} />
       </p>
       <div className="w-full bg-gray-100 rounded-full h-2">
         <div

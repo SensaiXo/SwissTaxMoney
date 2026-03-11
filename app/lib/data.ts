@@ -3,6 +3,9 @@
 const DATA_URL =
   'https://dam-api.bfs.admin.ch/hub/api/dam/assets/30225295/master';
 
+// Swiss permanent resident population (BFS STATPOP 2023)
+export const SWISS_POPULATION = 8_962_000;
+
 export interface CofogRow {
   sector: string;
   year: number;
@@ -54,6 +57,31 @@ export async function fetchCofogData(): Promise<CofogRow[]> {
 
 export function getAvailableYears(data: CofogRow[]): number[] {
   return [...new Set(data.map((r) => r.year))].sort((a, b) => b - a);
+}
+
+export function formatCHF(v: number): string {
+  return new Intl.NumberFormat('de-CH', { maximumFractionDigits: 0 }).format(v);
+}
+
+export function formatPerCapita(mchf: number): string {
+  const perPerson = (mchf * 1_000_000) / SWISS_POPULATION;
+  return 'CHF ' + new Intl.NumberFormat('de-CH', { maximumFractionDigits: 0 }).format(perPerson);
+}
+
+export function getYoyChange(
+  data: CofogRow[],
+  sector: string,
+  year: number,
+  cofog: string
+): number | null {
+  const current = data.find(
+    (r) => r.sector === sector && r.year === year && r.unit === 'MCHF' && r.cofog === cofog
+  );
+  const previous = data.find(
+    (r) => r.sector === sector && r.year === year - 1 && r.unit === 'MCHF' && r.cofog === cofog
+  );
+  if (!current || !previous || previous.value === 0) return null;
+  return ((current.value - previous.value) / previous.value) * 100;
 }
 
 export const SECTOR_LABELS: Record<string, string> = {

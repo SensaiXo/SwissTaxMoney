@@ -29,6 +29,12 @@ export function Header() {
           >
             Spending Analysis
           </Link>
+          <Link
+            href="/compare"
+            className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/15 transition-colors"
+          >
+            Compare
+          </Link>
         </nav>
       </div>
     </header>
