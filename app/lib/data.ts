@@ -11,8 +11,6 @@ export interface CofogRow {
   value: number;
 }
 
-let cachedData: CofogRow[] | null = null;
-
 function parseCSV(text: string): CofogRow[] {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
@@ -48,76 +46,14 @@ function parseCSV(text: string): CofogRow[] {
 }
 
 export async function fetchCofogData(): Promise<CofogRow[]> {
-  if (cachedData) return cachedData;
-
-  const resp = await fetch(DATA_URL, { next: { revalidate: 86400 } });
+  const resp = await fetch(DATA_URL);
   if (!resp.ok) throw new Error(`BFS API returned ${resp.status}`);
   const text = await resp.text();
-  cachedData = parseCSV(text);
-  return cachedData;
+  return parseCSV(text);
 }
 
 export function getAvailableYears(data: CofogRow[]): number[] {
   return [...new Set(data.map((r) => r.year))].sort((a, b) => b - a);
-}
-
-export function getTopLevelData(
-  data: CofogRow[],
-  sector: string,
-  year: number,
-  unit: string
-) {
-  return data.filter(
-    (r) =>
-      r.sector === sector &&
-      r.year === year &&
-      r.unit === unit &&
-      /^GF\d{2}$/.test(r.cofog) &&
-      r.cofog !== 'GFTOT'
-  );
-}
-
-export function getSubcategoryData(
-  data: CofogRow[],
-  sector: string,
-  year: number,
-  unit: string,
-  parentCode: string
-) {
-  const prefix = parentCode; // e.g. "GF09"
-  return data.filter(
-    (r) =>
-      r.sector === sector &&
-      r.year === year &&
-      r.unit === unit &&
-      r.cofog.startsWith(prefix) &&
-      r.cofog.length === 6 // subcategories are GF0901, GF0902, etc.
-  );
-}
-
-export function getTotalForCategory(
-  data: CofogRow[],
-  sector: string,
-  year: number,
-  unit: string,
-  code: string
-): number {
-  const row = data.find(
-    (r) => r.sector === sector && r.year === year && r.unit === unit && r.cofog === code
-  );
-  return row?.value ?? 0;
-}
-
-export function getTimeSeriesForCode(
-  data: CofogRow[],
-  sector: string,
-  unit: string,
-  code: string
-): { year: number; value: number }[] {
-  return data
-    .filter((r) => r.sector === sector && r.unit === unit && r.cofog === code)
-    .map((r) => ({ year: r.year, value: r.value }))
-    .sort((a, b) => a.year - b.year);
 }
 
 export const SECTOR_LABELS: Record<string, string> = {

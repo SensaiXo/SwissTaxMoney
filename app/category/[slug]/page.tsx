@@ -1,20 +1,24 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { COFOG_CATEGORIES, getCategoryBySlug } from '../../lib/cofog';
-import { fetchCofogData, getAvailableYears } from '../../lib/data';
+import { getCategoryBySlug } from '../../lib/cofog';
+import { useData } from '../../components/DataProvider';
 import { CategoryDetail } from '../../components/CategoryDetail';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default async function CategoryPage({ params }: PageProps) {
-  const { slug } = await params;
+export default function CategoryPage() {
+  const { slug } = useParams<{ slug: string }>();
   const category = getCategoryBySlug(slug);
-  if (!category) notFound();
+  const { data, years } = useData();
 
-  const data = await fetchCofogData();
-  const years = getAvailableYears(data);
+  if (!category) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-16 text-center">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Category not found</h2>
+        <Link href="/" className="text-[#8B2D1E] hover:underline">Back to Overview</Link>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -30,8 +34,4 @@ export default async function CategoryPage({ params }: PageProps) {
       <CategoryDetail category={category} data={data} years={years} />
     </div>
   );
-}
-
-export function generateStaticParams() {
-  return COFOG_CATEGORIES.map((cat) => ({ slug: cat.slug }));
 }
