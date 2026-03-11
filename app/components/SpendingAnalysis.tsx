@@ -62,14 +62,17 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
     value: sumGroups(data, sector, year, config.groups),
   }));
 
-  // Domestic total (everything except foreign & migration)
+  // Domestic total (everything except foreign & social assistance)
   const domesticTotal =
     simpleData.find((s) => s.key === 'domestic')?.value ?? 0;
   const foreignTotal = simpleData.find((s) => s.key === 'foreign')?.value ?? 0;
-  const migrationTotal =
-    simpleData.find((s) => s.key === 'migration')?.value ?? 0;
+  const socialAssistanceTotal =
+    simpleData.find((s) => s.key === 'socialAssistance')?.value ?? 0;
   const govOpsTotal =
     simpleData.find((s) => s.key === 'government')?.value ?? 0;
+  // Estimated asylum-specific portion (~25-30% of GF1007 based on SEM data)
+  const estimatedAsylumCost = Math.round(socialAssistanceTotal * 0.25);
+  const estimatedDomesticSozialhilfe = socialAssistanceTotal - estimatedAsylumCost;
 
   const formatCHF = (v: number) =>
     new Intl.NumberFormat('de-CH', { maximumFractionDigits: 0 }).format(v);
@@ -91,12 +94,22 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
     data: allYears.map((y) => sumGroups(data, sector, y, config.groups)),
   }));
 
-  // Migration vs specific domestic items comparison
-  const migrationVsComparison = [
+  // Budget comparison chart
+  const budgetComparison = [
     {
-      label: 'Migration & Asylum',
-      value: migrationTotal,
+      label: 'Sozialhilfe & Asylum (GF1007)',
+      value: socialAssistanceTotal,
       color: '#8B2D1E',
+    },
+    {
+      label: 'Est. Asylum portion (~25%)',
+      value: estimatedAsylumCost,
+      color: '#C4726A',
+    },
+    {
+      label: 'Est. Domestic Sozialhilfe (~75%)',
+      value: estimatedDomesticSozialhilfe,
+      color: '#D4A59A',
     },
     {
       label: 'Old Age (AHV/AVS)',
@@ -224,10 +237,11 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
           Spending Analysis — Where Does the Money Actually Go?
         </h2>
         <p className="text-gray-600 max-w-3xl">
-          Breakdown of Swiss government spending into who it serves: how much
-          goes directly to people in Switzerland, how much goes abroad, how much
-          is spent on migration & asylum, and what the government spends on
-          itself.
+          Breakdown of Swiss government spending by purpose. Important: &quot;For People
+          in Switzerland&quot; means everyone living here — Swiss citizens, C-permit holders, B-permit
+          holders, and temporary residents. COFOG data does not distinguish by nationality or
+          permit type. The &quot;Sozialhilfe & Asylum&quot; category (GF1007) mixes domestic welfare
+          with asylum costs — see the estimated split below.
         </p>
       </div>
 
@@ -363,32 +377,62 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
           })}
       </div>
 
-      {/* Migration in context */}
+      {/* Sozialhilfe & Asylum breakdown */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Migration & Asylum in Context
+          Sozialhilfe & Asylum — The Real Split
         </h3>
         <p className="text-sm text-gray-500 mb-4">
-          How does migration spending compare to other major budget items?
-          (COFOG code GF1007 &quot;Social Exclusion n.e.c.&quot; includes asylum
-          support, integration, and general social assistance)
+          GF1007 ({formatCHF(socialAssistanceTotal)} M CHF) is often cited as &quot;migration
+          costs&quot; but it combines domestic social assistance (Sozialhilfe) with asylum spending.
+          Based on SEM and BFS reports, roughly 25% is asylum-specific, 75% is domestic welfare
+          for all residents (Swiss citizens, C/B permit holders).
         </p>
-        <div className="h-[350px]">
+
+        {/* Estimated split visual */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Estimated Domestic Sozialhilfe (~75%)
+            </p>
+            <p className="text-2xl font-bold text-[#D4A59A]">
+              ~{formatCHF(estimatedDomesticSozialhilfe)} M CHF
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Welfare for Swiss citizens + permanent residents (C-permit)
+              + recognized refugees who have been granted asylum
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Estimated Asylum & Integration (~25%)
+            </p>
+            <p className="text-2xl font-bold text-[#C4726A]">
+              ~{formatCHF(estimatedAsylumCost)} M CHF
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Asylum seeker support, refugee housing, integration programs,
+              emergency accommodation
+            </p>
+          </div>
+        </div>
+
+        <div className="h-[400px]">
           <BarChart
-            labels={migrationVsComparison.map((m) => m.label)}
-            values={migrationVsComparison.map((m) => m.value)}
-            colors={migrationVsComparison.map((m) => m.color)}
+            labels={budgetComparison.map((m) => m.label)}
+            values={budgetComparison.map((m) => m.value)}
+            colors={budgetComparison.map((m) => m.color)}
             unitLabel="Million CHF"
             horizontal
           />
         </div>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500">Migration & Asylum</p>
+            <p className="text-xs text-gray-500">GF1007 Total (Sozialhilfe + Asylum)</p>
             <p className="text-lg font-bold text-[#8B2D1E]">
-              {formatCHF(migrationTotal)} M CHF
+              {formatCHF(socialAssistanceTotal)} M CHF
             </p>
-            <p className="text-xs text-gray-400">{pct(migrationTotal)}% of total</p>
+            <p className="text-xs text-gray-400">{pct(socialAssistanceTotal)}% of total spending</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500">Foreign Aid (Ausland)</p>
@@ -399,7 +443,7 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500">
-              For Swiss Residents (domestic)
+              Domestic services (all residents)
             </p>
             <p className="text-lg font-bold text-[#3D7A8A]">
               {formatCHF(domesticTotal)} M CHF
@@ -412,19 +456,19 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
       {/* Trends */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
         <h3 className="text-sm font-medium text-gray-500 mb-4">
-          Domestic vs. Foreign vs. Migration — Over Time
+          Domestic vs. Foreign vs. Sozialhilfe/Asylum — Over Time
         </h3>
         <LineChart years={allYears} datasets={trendDatasets} filterable />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
         <h3 className="text-sm font-medium text-gray-500 mb-4">
-          Migration vs. Major Budget Items — Over Time
+          Sozialhilfe & Asylum vs. Major Budget Items — Over Time
         </h3>
         <LineChart
           years={allYears}
           datasets={[
-            { label: 'Migration & Asylum (GF1007)', color: '#8B2D1E', data: migrationTrend },
+            { label: 'Sozialhilfe & Asylum (GF1007)', color: '#8B2D1E', data: migrationTrend },
             { label: 'Old Age / AHV (GF1002)', color: '#4A5A8A', data: ahvTrend },
             { label: 'Education (GF09)', color: '#B36B3D', data: educationTrend },
             { label: 'Foreign Affairs + Aid', color: '#A67C37', data: foreignAidTrend },
@@ -440,19 +484,21 @@ export function SpendingAnalysis({ data, years }: SpendingAnalysisProps) {
         </p>
         <ul className="text-sm text-amber-700 space-y-1 list-disc list-inside">
           <li>
-            COFOG data does not explicitly separate &quot;migration&quot; spending. The
-            code GF1007 (&quot;Social Exclusion n.e.c.&quot;) includes both asylum/integration
-            costs AND domestic social assistance (Sozialhilfe) for Swiss residents.
+            <strong>&quot;For People in Switzerland&quot;</strong> means ALL residents — Swiss passport
+            holders, C-permit (Niederlassungsbewilligung), B-permit (Aufenthaltsbewilligung),
+            L-permit (short-term), and cross-border workers (G-permit). COFOG data does not
+            distinguish by nationality or permit type.
           </li>
           <li>
-            The actual migration-specific share within GF1007 varies by year and
-            government level. At the federal level it is higher; at cantonal/municipal
-            level, domestic Sozialhilfe is a larger component.
+            GF1007 (&quot;Social Exclusion n.e.c.&quot;) combines domestic Sozialhilfe with
+            asylum costs. The ~25/75% split shown is an estimate based on SEM
+            (State Secretariat for Migration) annual reports. The exact ratio varies
+            by year and government level.
           </li>
           <li>
-            Some education and health spending also serves non-Swiss residents
-            (e.g., international students, cross-border workers), but this cannot
-            be separated in COFOG data.
+            Education, health, and transport spending serves everyone living in
+            Switzerland regardless of citizenship. Swiss citizens and permanent
+            residents use the same schools, hospitals, and SBB trains.
           </li>
           <li>
             All figures in millions of CHF. Source: BFS / opendata.swiss.

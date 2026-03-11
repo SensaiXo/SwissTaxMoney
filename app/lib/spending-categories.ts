@@ -63,16 +63,16 @@ export const FOREIGN_SPENDING: SpendingGroup = {
   ],
 };
 
-// Migration, asylum, integration
-export const MIGRATION_SPENDING: SpendingGroup = {
-  id: 'migration',
-  label: 'Migration, Asylum & Integration',
-  shortLabel: 'Migration & Asylum',
+// Social assistance, asylum, integration — cannot be separated in COFOG
+export const SOCIAL_ASSISTANCE_SPENDING: SpendingGroup = {
+  id: 'social-assistance',
+  label: 'Social Assistance, Asylum & Integration',
+  shortLabel: 'Sozialhilfe & Asylum',
   color: '#8B2D1E',
   description:
-    'Spending on asylum seekers, refugee support, integration programs, and social exclusion (Sozialhilfe for non-citizens). Note: this is captured under GF1007 "Social Exclusion n.e.c." which also includes domestic social assistance — the exact split is not available in COFOG data, but migration costs are a significant portion.',
+    'COFOG code GF1007 "Social Exclusion n.e.c." — this includes BOTH domestic Sozialhilfe (welfare for Swiss residents) AND asylum/refugee/integration costs. The COFOG data does NOT separate these. The majority (~70-75%) is domestic social assistance; asylum-specific costs are estimated at ~2-3 billion CHF (per SEM reports), not the full amount shown here.',
   cofogCodes: [
-    'GF1007', // Social Exclusion n.e.c. (asylum, integration, Sozialhilfe)
+    'GF1007', // Social Exclusion n.e.c. (Sozialhilfe + asylum + integration)
   ],
 };
 
@@ -129,7 +129,7 @@ export const ALL_SPENDING_GROUPS: SpendingGroup[] = [
   FOR_SWISS_PEOPLE,
   GOVERNMENT_OPERATIONS,
   FOREIGN_SPENDING,
-  MIGRATION_SPENDING,
+  SOCIAL_ASSISTANCE_SPENDING,
   DEFENCE_SPENDING,
   ECONOMIC_POLICY,
 ];
@@ -151,9 +151,9 @@ export const SIMPLE_GROUPS = {
     color: '#A67C37',
     groups: [FOREIGN_SPENDING],
   },
-  migration: {
-    label: 'Migration & Asylum',
+  socialAssistance: {
+    label: 'Sozialhilfe & Asylum (mixed)',
     color: '#8B2D1E',
-    groups: [MIGRATION_SPENDING],
+    groups: [SOCIAL_ASSISTANCE_SPENDING],
   },
 };
